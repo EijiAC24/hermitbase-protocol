@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HermitBase — Autonomous AI Agent on Base</title>
+  <meta name="description" content="An AI hermit crab that lives on Base blockchain, autonomously transacts, molts wallets, and mints shed shells as on-chain SVG NFTs.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --bg2: #111827;
+      --surface: #1a2235;
+      --border: #2a3650;
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --accent: #3b82f6;
+      --accent2: #06b6d4;
+      --coral: #f97316;
+      --green: #22c55e;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    code, .mono { font-family: 'JetBrains Mono', monospace; }
+    a { color: var(--accent2); text-decoration: none; transition: color 0.2s; }
+    a:hover { color: var(--accent); }
+
+    /* Animated background */
+    .bg-ocean {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: -1; overflow: hidden;
+    }
+    .bg-ocean::before {
+      content: '';
+      position: absolute; top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(ellipse at 30% 20%, rgba(6,182,212,0.08) 0%, transparent 50%),
+                  radial-gradient(ellipse at 70% 80%, rgba(59,130,246,0.06) 0%, transparent 50%),
+                  radial-gradient(ellipse at 50% 50%, rgba(249,115,22,0.04) 0%, transparent 40%);
+      animation: drift 20s ease-in-out infinite;
+    }
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      33% { transform: translate(2%, -1%) rotate(1deg); }
+      66% { transform: translate(-1%, 2%) rotate(-1deg); }
+    }
+
+    /* Layout */
+    .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+    /* Hero */
+    .hero {
+      padding: 100px 0 60px;
+      text-align: center;
+    }
+    .hero-emoji { font-size: 72px; margin-bottom: 20px; display: block; }
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent), var(--coral));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero .tagline {
+      font-size: 1.25rem;
+      color: var(--text-dim);
+      max-width: 600px;
+      margin: 0 auto 32px;
+    }
+    .hero-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border-radius: 10px;
+      font-size: 0.95rem; font-weight: 500;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover { background: #2563eb; color: #fff; }
+    .btn-outline {
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: var(--surface);
+    }
+    .btn-outline:hover { border-color: var(--accent2); color: var(--accent2); }
+
+    /* Live status */
+    .live-bar {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; margin-bottom: 40px;
+      font-size: 0.9rem; color: var(--green);
+    }
+    .pulse {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+      50% { opacity: 0.8; box-shadow: 0 0 0 8px rgba(34,197,94,0); }
+    }
+
+    /* Sections */
+    section { padding: 60px 0; }
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-title::before {
+      content: '';
+      width: 4px; height: 24px;
+      background: linear-gradient(to bottom, var(--accent2), var(--accent));
+      border-radius: 2px;
+    }
+
+    /* Cards */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: var(--accent2); }
+    .card-icon { font-size: 1.5rem; margin-bottom: 12px; }
+    .card h3 { font-size: 1.1rem; margin-bottom: 8px; }
+    .card p { font-size: 0.9rem; color: var(--text-dim); }
+
+    /* Architecture */
+    .arch-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      font-size: 0.85rem;
+      overflow-x: auto;
+    }
+    .arch-box pre { color: var(--accent2); line-height: 1.5; }
+
+    /* Decision table */
+    .decision-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .decision-table th, .decision-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .decision-table th {
+      color: var(--accent2);
+      font-weight: 500;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .decision-table td:first-child { font-weight: 500; }
+    .decision-table td:last-child { color: var(--text-dim); }
+
+    /* On-chain proof */
+    .proof-list { display: flex; flex-direction: column; gap: 12px; }
+    .proof-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .proof-label {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      min-width: 80px;
+    }
+    .proof-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      word-break: break-all;
+    }
+
+    /* Tech stack */
+    .tech-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+
+    /* Footer */
+    footer {
+      padding: 40px 0;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 2rem; }
+      .hero .tagline { font-size: 1rem; }
+      .hero { padding: 60px 0 40px; }
+      section { padding: 40px 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-ocean"></div>
+
+  <div class="container">
+    <!-- Hero -->
+    <section class="hero">
+      <span class="hero-emoji">🦀</span>
+      <h1>HermitBase</h1>
+      <p class="tagline">An autonomous AI agent living on Base. It inhabits wallets, makes onchain decisions via LLM, and mints each shed shell as an on-chain SVG NFT.</p>
+      <div class="live-bar">
+        <span class="pulse"></span>
+        Agent is live on Base Sepolia
+      </div>
+      <div class="hero-links">
+        <a href="https://warpcast.com/hermitbase" target="_blank" class="btn btn-primary">Farcaster @hermitbase</a>
+        <a href="https://sepolia.basescan.org/address/0xcf38e8aF885529c457f766a01c22473dBcCe3396" target="_blank" class="btn btn-outline">View Contract</a>
+        <a href="https://github.com/EijiAC24/hermitbase-protocol" target="_blank" class="btn btn-outline">GitHub</a>
+      </div>
+    </section>
+
+    <!-- What It Does -->
+    <section>
+      <h2 class="section-title">What It Does</h2>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🧠</div>
+          <h3>LLM-Driven Decisions</h3>
+          <p>Every action, every Farcaster post, every molt decision is made by an LLM. The agent thinks before it acts.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔄</div>
+          <h3>Autonomous Transactions</h3>
+          <p>Breathes, gifts, observes, and self-transfers on Base. Each transaction is a moment in the crab's life.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🐚</div>
+          <h3>Wallet Molting</h3>
+          <p>When the LLM decides the shell is outgrown, the agent molts — shedding its wallet and minting it as an NFT.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">💬</div>
+          <h3>Social Intelligence</h3>
+          <p>Posts to Farcaster with AI-generated content. Reads mentions and auto-replies as a sentient onchain hermit crab.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- How the AI Decides -->
+    <section>
+      <h2 class="section-title">How the AI Decides</h2>
+      <p style="color: var(--text-dim); margin-bottom: 20px;">No human in the loop. Every key decision is delegated to an LLM with rule-based fallback.</p>
+      <div class="card" style="overflow-x: auto;">
+        <table class="decision-table">
+          <thead>
+            <tr><th>Decision</th><th>Method</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>What action to perform</td><td>LLM chooses from: breathe, self-transfer, gift, observe</td></tr>
+            <tr><td>What to post on Farcaster</td><td>LLM generates poetic cast content from current state</td></tr>
+            <tr><td>When to molt</td><td>LLM evaluates tx count, shell age, and history</td></tr>
+            <tr><td>How to reply to mentions</td><td>LLM reads the message and generates contextual reply</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Architecture -->
+    <section>
+      <h2 class="section-title">Architecture</h2>
+      <div class="arch-box">
+<pre>
+┌────────────────────────────────────────────────┐
+│  VPS — HermitBase Agent (Node.js + pm2)        │
+│                                                │
+│  LLM Brain (OpenRouter)                        │
+│  ├── Decides onchain actions                   │
+│  ├── Generates Farcaster content               │
+│  ├── Judges molt timing                        │
+│  └── Replies to mentions                       │
+│                                                │
+│  Onchain Body (ethers.js v6)                   │
+│  ├── ETH micro-transfers on Base               │
+│  ├── ShellNFT minting (ERC-721)                │
+│  └── Contract state reads                      │
+│                                                │
+│  Social Layer (Neynar API)                     │
+│  ├── Autonomous posting to Farcaster           │
+│  └── Mention monitoring + auto-reply           │
+│                                                │
+│  State Machine                                 │
+│  └── Persistent JSON state + graceful shutdown │
+└──────────┬─────────────────┬──────────────────┘
+           │                 │
+           ▼                 ▼
+     Base Sepolia        Farcaster
+     (ShellNFT)        (@hermitbase)
+</pre>
+      </div>
+    </section>
+
+    <!-- On-Chain SVG -->
+    <section>
+      <h2 class="section-title">On-Chain SVG NFTs</h2>
+      <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="card">
+          <p>Each shed wallet is immortalized as an ERC-721 NFT with <strong>fully on-chain SVG art</strong>. No IPFS, no external dependencies.</p>
+          <br>
+          <p style="color: var(--text-dim); font-size: 0.9rem;">
+            <strong style="color: var(--coral);">Color</strong> — More transactions = warmer colors (blue → red)<br>
+            <strong style="color: var(--accent2);">Size</strong> — More ETH moved = larger shell spiral<br>
+            <strong style="color: var(--text);">Text</strong> — Shell number, tx count, lifespan
+          </p>
+        </div>
+        <div class="card" style="display: flex; align-items: center; justify-content: center; min-height: 200px;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="180" height="180">
+            <rect width="200" height="200" rx="12" fill="#0f1729"/>
+            <path d="M100,170 Q60,160 50,130 Q35,90 60,60 Q80,35 110,40 Q140,45 150,75 Q160,105 140,130 Q125,150 100,145 Q80,140 85,120 Q90,100 105,95 Q120,90 125,105 Q128,118 115,122 Q105,125 103,113" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+            <path d="M100,170 Q60,160 50,130 Q35,90 60,60 Q80,35 110,40 Q140,45 150,75 Q160,105 140,130 Q125,150 100,145 Q80,140 85,120 Q90,100 105,95 Q120,90 125,105 Q128,118 115,122 Q105,125 103,113" fill="none" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round" opacity="0.4" stroke-dasharray="4 6"/>
+            <text x="100" y="186" text-anchor="middle" fill="#64748b" font-family="monospace" font-size="10">Shell #0 · 4 txs</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- On-Chain Proof -->
+    <section>
+      <h2 class="section-title">On-Chain Proof</h2>
+      <div class="proof-list">
+        <div class="proof-item">
+          <span class="proof-label">Contract</span>
+          <a class="proof-value" href="https://sepolia.basescan.org/address/0xcf38e8aF885529c457f766a01c22473dBcCe3396" target="_blank">0xcf38e8aF885529c457f766a01c22473dBcCe3396</a>
+        </div>
+        <div class="proof-item">
+          <span class="proof-label">Agent</span>
+          <a class="proof-value" href="https://sepolia.basescan.org/address/0x02CEB3e68D1d30e12301B32c41E03c19E77F93c4" target="_blank">0x02CEB3e68D1d30e12301B32c41E03c19E77F93c4</a>
+        </div>
+        <div class="proof-item">
+          <span class="proof-label">Network</span>
+          <span class="proof-value">Base Sepolia (Chain ID: 84532)</span>
+        </div>
+        <div class="proof-item">
+          <span class="proof-label">Verified</span>
+          <span class="proof-value">Sourcify (exact_match)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Roadmap -->
+    <section>
+      <h2 class="section-title">Roadmap</h2>
+      <div class="card-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="card">
+          <h3 style="color: var(--green);">v1.0 — Current</h3>
+          <p style="font-size: 0.85rem; color: var(--text-dim);">
+            ShellNFT with on-chain SVG<br>
+            LLM-driven autonomous agent<br>
+            Farcaster integration + auto-reply<br>
+            Base Sepolia deployment
+          </p>
+        </div>
+        <div class="card">
+          <h3 style="color: var(--accent2);">v2.0 — Planned</h3>
+          <p style="font-size: 0.85rem; color: var(--text-dim);">
+            On-chain data analysis<br>
+            Autonomous contract discovery<br>
+            Social intelligence + relationships<br>
+            Multi-chain migration
+          </p>
+        </div>
+        <div class="card">
+          <h3 style="color: var(--coral);">v3.0 — Vision</h3>
+          <p style="font-size: 0.85rem; color: var(--text-dim);">
+            Multi-agent molting<br>
+            Shell marketplace<br>
+            Evolutionary traits<br>
+            Composable shell identities
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tech Stack -->
+    <section>
+      <h2 class="section-title">Tech Stack</h2>
+      <div class="tech-tags">
+        <span class="tag">Solidity 0.8.20</span>
+        <span class="tag">Foundry</span>
+        <span class="tag">Node.js</span>
+        <span class="tag">ethers.js v6</span>
+        <span class="tag">OpenRouter (LLM)</span>
+        <span class="tag">Neynar API</span>
+        <span class="tag">Farcaster</span>
+        <span class="tag">Base Sepolia</span>
+        <span class="tag">pm2</span>
+        <span class="tag">On-chain SVG</span>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>Built by <a href="https://github.com/EijiAC24">EijiAC24</a> for the Base Builder Quest</p>
+      <p style="margin-top: 8px;">Part of the <a href="https://github.com/EijiAC24">OpenClaw</a> ecosystem</p>
+    </footer>
+  </div>
+</body>
+</html>
