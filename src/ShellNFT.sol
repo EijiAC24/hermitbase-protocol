@@ -79,23 +79,14 @@ contract ShellNFT {
         uint256 lifespanH = lifespan / 3600;
         uint256 lifespanM = (lifespan % 3600) / 60;
 
-        // Color: more txs = warmer
-        uint256 r = _min(255, s.txCount * 15);
-        uint256 g = s.txCount * 10 > 200 ? 0 : 200 - s.txCount * 10;
-        uint256 b = s.txCount * 12 > 255 ? 0 : 255 - s.txCount * 12;
-        uint256 sz = 30 + _min(70, s.totalValueMoved / 1e15);
+        // Warm factor: more txs = warmer palette (blue/green -> ochre/sienna)
+        uint256 w = _min(255, s.txCount * 12);
 
         string memory svg = string(abi.encodePacked(
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">'
-            '<rect width="200" height="200" fill="#0a1628"/>',
-            _circle(100, 100, sz, r, g, b, 80),
-            _circle(90 + sz/4, 90 + sz/4, sz/2, _min(255,r+30), _min(255,g+30), _min(255,b+30), 60),
-            _circle(95 + sz/3, 95 + sz/3, sz/4, _min(255,r+60), _min(255,g+60), _min(255,b+60), 40),
-            '<text x="100" y="22" text-anchor="middle" fill="white" font-size="12" font-family="monospace">Shell #',
-            _toString(shellId), '</text>'
-            '<text x="100" y="185" text-anchor="middle" fill="#888" font-size="9" font-family="monospace">',
-            _toString(s.txCount), ' txs | ', _toString(lifespanH), 'h ', _toString(lifespanM), 'm</text>'
-            '</svg>'
+            _svgHead(),
+            _svgFacets(w),
+            _svgEyeAndClaws(w),
+            _svgText(shellId, s.txCount, lifespanH, lifespanM)
         ));
 
         string memory json = string(abi.encodePacked(
@@ -109,6 +100,79 @@ contract ShellNFT {
         ));
 
         return string(abi.encodePacked("data:application/json;base64,", _base64(bytes(json))));
+    }
+
+    // ===== SVG Builder (Cubist Shell) =====
+
+    function _svgHead() internal pure returns (string memory) {
+        return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">'
+            '<rect width="200" height="200" fill="#0e1117"/>'
+            '<polygon points="10,10 30,10 10,30" fill="#1a2744" opacity="0.6"/>'
+            '<polygon points="190,190 170,190 190,170" fill="#1a2744" opacity="0.6"/>';
+    }
+
+    function _svgFacets(uint256 w) internal pure returns (string memory) {
+        return string(abi.encodePacked(
+            // Large frame triangle
+            _poly("35,165 100,30 165,165", 26, 39, 68, 50),
+            // Shell facets — angular cubist composition
+            _poly("100,38 138,82 112,98 78,68",
+                _min(255, 30 + w/3), _min(255, 50 + w/6), _min(255, 120 - w/4), 85),
+            _poly("138,82 162,142 128,132 112,98",
+                _min(255, w * 3/4), _min(255, 100 - w/5), _min(255, 60 + w/8), 80),
+            _poly("78,68 112,98 92,142 48,128",
+                _min(255, 45 + w/4), _min(255, 90 + w/5), _min(255, 80 - w/6), 80),
+            _polyInner(w)
+        ));
+    }
+
+    function _polyInner(uint256 w) internal pure returns (string memory) {
+        return string(abi.encodePacked(
+            // Center facets
+            _poly("112,98 128,132 114,152 92,142",
+                _min(255, 180 + w/4), _min(255, 140 - w/3), _min(255, 40 + w/5), 75),
+            // Inner spiral core
+            _poly("108,94 124,118 112,132 96,114",
+                _min(255, w/2 + 80), _min(255, w/3 + 60), 30, 70),
+            // Tiny inner accent
+            _poly("110,108 118,122 108,126 102,116",
+                _min(255, 200 + w/5), _min(255, 160 - w/4), _min(255, 50 + w/3), 60)
+        ));
+    }
+
+    function _svgEyeAndClaws(uint256 w) internal pure returns (string memory) {
+        return string(abi.encodePacked(
+            // Eye — golden ring with dark pupil
+            '<circle cx="88" cy="72" r="10" fill="none" stroke="rgb(',
+            _toString(_min(255, 200 + w/5)), ',', _toString(_min(255, 160 - w/8)), ',74)" stroke-width="2.5"/>',
+            '<circle cx="87" cy="71" r="4" fill="#0e1117"/>',
+            '<circle cx="88" cy="70" r="1.5" fill="rgb(',
+            _toString(_min(255, 200 + w/5)), ',', _toString(_min(255, 160 - w/8)), ',74)"/>',
+            // Claw lines
+            '<line x1="48" y1="150" x2="28" y2="178" stroke="rgb(',
+            _toString(_min(255, w/2 + 60)), ',', _toString(_min(255, 80 - w/6)), ',50)" stroke-width="2.5" stroke-linecap="round"/>',
+            '<line x1="58" y1="155" x2="42" y2="180" stroke="rgb(',
+            _toString(_min(255, w/2 + 40)), ',', _toString(_min(255, 70 - w/6)), ',45)" stroke-width="2" stroke-linecap="round"/>'
+        ));
+    }
+
+    function _svgText(uint256 id, uint256 txs, uint256 h, uint256 m) internal pure returns (string memory) {
+        return string(abi.encodePacked(
+            '<text x="100" y="16" text-anchor="middle" fill="#c8a04a" font-size="10" font-family="monospace" letter-spacing="2">SHELL #',
+            _toString(id), '</text>'
+            '<text x="100" y="192" text-anchor="middle" fill="#6b6560" font-size="8" font-family="monospace">',
+            _toString(txs), ' txs  |  ', _toString(h), 'h ', _toString(m), 'm</text>'
+            '</svg>'
+        ));
+    }
+
+    function _poly(string memory pts, uint256 r, uint256 g, uint256 b, uint256 op) internal pure returns (string memory) {
+        return string(abi.encodePacked(
+            '<polygon points="', pts, '" fill="rgb(',
+            _toString(r), ',', _toString(g), ',', _toString(b),
+            ')" stroke="#111" stroke-width="1.5" opacity="0.',
+            _toString(op), '"/>'
+        ));
     }
 
     // ===== ERC-721 Implementation =====
@@ -166,14 +230,6 @@ contract ShellNFT {
     }
 
     // ===== Utilities =====
-
-    function _circle(uint256 cx, uint256 cy, uint256 r, uint256 cr, uint256 cg, uint256 cb, uint256 op) internal pure returns (string memory) {
-        return string(abi.encodePacked(
-            '<circle cx="', _toString(cx), '" cy="', _toString(cy), '" r="', _toString(r),
-            '" fill="rgb(', _toString(cr), ',', _toString(cg), ',', _toString(cb),
-            ')" opacity="0.', _toString(op), '"/>'
-        ));
-    }
 
     function _min(uint256 a, uint256 b) internal pure returns (uint256) { return a < b ? a : b; }
 

@@ -4,7 +4,7 @@ require("dotenv").config();
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 const BASE_SEPOLIA_RPC = process.env.BASE_SEPOLIA_RPC || "https://sepolia.base.org";
 const SHELL_NFT_ADDRESS =
-  process.env.SHELL_NFT_ADDRESS || "0xcf38e8aF885529c457f766a01c22473dBcCe3396";
+  process.env.SHELL_NFT_ADDRESS || "0x53e493D223C91a02ca9e1531B240b4be3Ff11c5f";
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
 const FARCASTER_SIGNER_UUID = process.env.FARCASTER_SIGNER_UUID;
 const MOONSHOT_API_KEY = process.env.MOONSHOT_API_KEY;

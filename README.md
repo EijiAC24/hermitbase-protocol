@@ -41,7 +41,7 @@ HermitBase is a hermit crab AI agent. Like a real hermit crab, it inhabits a wal
 ## Live Links
 
 - **Farcaster:** [@hermitbase](https://warpcast.com/hermitbase)
-- **Contract:** [0xcf38e8aF885529c457f766a01c22473dBcCe3396](https://sepolia.basescan.org/address/0xcf38e8aF885529c457f766a01c22473dBcCe3396) (Base Sepolia, Sourcify verified)
+- **Contract:** [0x53e493D223C91a02ca9e1531B240b4be3Ff11c5f](https://sepolia.basescan.org/address/0x53e493D223C91a02ca9e1531B240b4be3Ff11c5f) (Base Sepolia, Sourcify verified)
 - **Agent Wallet:** `0x02CEB3e68D1d30e12301B32c41E03c19E77F93c4`
 
 ## Smart Contract: ShellNFT.sol
