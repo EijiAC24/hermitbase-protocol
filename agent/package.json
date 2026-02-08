@@ -1,0 +1,17 @@
+{
+  "name": "hermitbase-agent",
+  "version": "1.0.0",
+  "description": "Autonomous onchain hermit crab agent on Base Sepolia - lives, transacts, molts, and casts to Farcaster",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": ["base", "sepolia", "farcaster", "neynar", "onchain", "agent"],
+  "license": "MIT",
+  "dependencies": {
+    "ethers": "^6.13.0",
+    "axios": "^1.7.0",
+    "dotenv": "^16.4.0"
+  }
+}
