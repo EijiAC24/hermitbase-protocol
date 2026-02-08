@@ -423,6 +423,38 @@
       letter-spacing: 0.02em;
     }
 
+    /* ── Shell Gallery ─────────────────────────── */
+    .shell-gallery {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 48px;
+    }
+    .shell-card {
+      text-align: center;
+    }
+    .shell-card svg {
+      width: 100%;
+      max-width: 240px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+    .shell-label {
+      font-size: 0.85rem;
+      color: var(--text);
+      margin-top: 14px;
+      font-weight: 400;
+    }
+    .shell-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    @media (max-width: 768px) {
+      .shell-gallery { grid-template-columns: 1fr; max-width: 280px; margin-left: auto; margin-right: auto; }
+    }
+
     /* ── Footer ───────────────────────────────── */
     footer {
       padding: 48px 40px;
@@ -545,6 +577,90 @@
         <div class="decision-row">
           <span class="decision-what">Social replies</span>
           <span class="decision-how">LLM reads mentions and generates contextual responses</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- On-Chain SVG Gallery -->
+  <section id="shells">
+    <div class="wrap">
+      <div class="reveal">
+        <p class="section-label">On-Chain Art</p>
+        <h2 class="section-heading">Fully on-chain SVG NFTs</h2>
+        <p class="section-text">Each shed wallet becomes an ERC-721 NFT with cubist SVG art generated entirely on-chain. No IPFS. No external storage. Color shifts from cool to warm as the shell accumulates more transactions.</p>
+      </div>
+      <div class="shell-gallery reveal">
+        <div class="shell-card">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+            <rect width="200" height="200" fill="#0e1117"/>
+            <polygon points="10,10 30,10 10,30" fill="#1a2744" opacity="0.6"/>
+            <polygon points="190,190 170,190 190,170" fill="#1a2744" opacity="0.6"/>
+            <polygon points="35,165 100,30 165,165" fill="rgb(26,39,68)" stroke="#111" stroke-width="1.5" opacity="0.50"/>
+            <polygon points="100,38 138,82 112,98 78,68" fill="rgb(50,60,105)" stroke="#111" stroke-width="1.5" opacity="0.85"/>
+            <polygon points="138,82 162,142 128,132 112,98" fill="rgb(45,88,67)" stroke="#111" stroke-width="1.5" opacity="0.80"/>
+            <polygon points="78,68 112,98 92,142 48,128" fill="rgb(60,102,70)" stroke="#111" stroke-width="1.5" opacity="0.80"/>
+            <polygon points="112,98 128,132 114,152 92,142" fill="rgb(195,120,52)" stroke="#111" stroke-width="1.5" opacity="0.75"/>
+            <polygon points="108,94 124,118 112,132 96,114" fill="rgb(110,80,30)" stroke="#111" stroke-width="1.5" opacity="0.70"/>
+            <polygon points="110,108 118,122 108,126 102,116" fill="rgb(212,145,70)" stroke="#111" stroke-width="1.5" opacity="0.60"/>
+            <circle cx="88" cy="72" r="10" fill="none" stroke="rgb(212,152,74)" stroke-width="2.5"/>
+            <circle cx="87" cy="71" r="4" fill="#0e1117"/>
+            <circle cx="88" cy="70" r="1.5" fill="rgb(212,152,74)"/>
+            <line x1="48" y1="150" x2="28" y2="178" stroke="rgb(90,70,50)" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="58" y1="155" x2="42" y2="180" stroke="rgb(70,60,45)" stroke-width="2" stroke-linecap="round"/>
+            <text x="100" y="16" text-anchor="middle" fill="#c8a04a" font-size="10" font-family="monospace" letter-spacing="2">SHELL #0</text>
+            <text x="100" y="192" text-anchor="middle" fill="#6b6560" font-size="8" font-family="monospace">5 txs  |  2h 0m</text>
+          </svg>
+          <p class="shell-label">5 transactions</p>
+          <p class="shell-desc">Cool blue-green tones</p>
+        </div>
+        <div class="shell-card">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+            <rect width="200" height="200" fill="#0e1117"/>
+            <polygon points="10,10 30,10 10,30" fill="#1a2744" opacity="0.6"/>
+            <polygon points="190,190 170,190 190,170" fill="#1a2744" opacity="0.6"/>
+            <polygon points="35,165 100,30 165,165" fill="rgb(26,39,68)" stroke="#111" stroke-width="1.5" opacity="0.50"/>
+            <polygon points="100,38 138,82 112,98 78,68" fill="rgb(90,80,75)" stroke="#111" stroke-width="1.5" opacity="0.85"/>
+            <polygon points="138,82 162,142 128,132 112,98" fill="rgb(135,64,82)" stroke="#111" stroke-width="1.5" opacity="0.80"/>
+            <polygon points="78,68 112,98 92,142 48,128" fill="rgb(90,126,50)" stroke="#111" stroke-width="1.5" opacity="0.80"/>
+            <polygon points="112,98 128,132 114,152 92,142" fill="rgb(225,80,76)" stroke="#111" stroke-width="1.5" opacity="0.75"/>
+            <polygon points="108,94 124,118 112,132 96,114" fill="rgb(170,120,30)" stroke="#111" stroke-width="1.5" opacity="0.70"/>
+            <polygon points="110,108 118,122 108,126 102,116" fill="rgb(236,115,110)" stroke="#111" stroke-width="1.5" opacity="0.60"/>
+            <circle cx="88" cy="72" r="10" fill="none" stroke="rgb(236,137,74)" stroke-width="2.5"/>
+            <circle cx="87" cy="71" r="4" fill="#0e1117"/>
+            <circle cx="88" cy="70" r="1.5" fill="rgb(236,137,74)"/>
+            <line x1="48" y1="150" x2="28" y2="178" stroke="rgb(150,50,50)" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="58" y1="155" x2="42" y2="180" stroke="rgb(130,40,45)" stroke-width="2" stroke-linecap="round"/>
+            <text x="100" y="16" text-anchor="middle" fill="#c8a04a" font-size="10" font-family="monospace" letter-spacing="2">SHELL #1</text>
+            <text x="100" y="192" text-anchor="middle" fill="#6b6560" font-size="8" font-family="monospace">15 txs  |  6h 30m</text>
+          </svg>
+          <p class="shell-label">15 transactions</p>
+          <p class="shell-desc">Warm ochre-sienna tones</p>
+        </div>
+        <div class="shell-card">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+            <rect width="200" height="200" fill="#0e1117"/>
+            <polygon points="10,10 30,10 10,30" fill="#1a2744" opacity="0.6"/>
+            <polygon points="190,190 170,190 190,170" fill="#1a2744" opacity="0.6"/>
+            <polygon points="35,165 100,30 165,165" fill="rgb(26,39,68)" stroke="#111" stroke-width="1.5" opacity="0.50"/>
+            <polygon points="100,38 138,82 112,98 78,68" fill="rgb(115,92,56)" stroke="#111" stroke-width="1.5" opacity="0.85"/>
+            <polygon points="138,82 162,142 128,132 112,98" fill="rgb(191,49,91)" stroke="#111" stroke-width="1.5" opacity="0.80"/>
+            <polygon points="78,68 112,98 92,142 48,128" fill="rgb(108,141,37)" stroke="#111" stroke-width="1.5" opacity="0.80"/>
+            <polygon points="112,98 128,132 114,152 92,142" fill="rgb(243,55,91)" stroke="#111" stroke-width="1.5" opacity="0.75"/>
+            <polygon points="108,94 124,118 112,132 96,114" fill="rgb(207,145,30)" stroke="#111" stroke-width="1.5" opacity="0.70"/>
+            <polygon points="110,108 118,122 108,126 102,116" fill="rgb(251,96,135)" stroke="#111" stroke-width="1.5" opacity="0.60"/>
+            <circle cx="88" cy="72" r="10" fill="none" stroke="rgb(251,128,74)" stroke-width="2.5"/>
+            <circle cx="87" cy="71" r="4" fill="#0e1117"/>
+            <circle cx="88" cy="70" r="1.5" fill="rgb(251,128,74)"/>
+            <line x1="48" y1="150" x2="28" y2="178" stroke="rgb(187,37,50)" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="58" y1="155" x2="42" y2="180" stroke="rgb(167,27,45)" stroke-width="2" stroke-linecap="round"/>
+            <text x="100" y="16" text-anchor="middle" fill="#c8a04a" font-size="10" font-family="monospace" letter-spacing="2">SHELL #2</text>
+            <text x="100" y="192" text-anchor="middle" fill="#6b6560" font-size="8" font-family="monospace">25 txs  |  12h 0m</text>
+          </svg>
+          <p class="shell-label">25 transactions</p>
+          <p class="shell-desc">Fiery red tones</p>
         </div>
       </div>
     </div>
