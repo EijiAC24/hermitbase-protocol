@@ -10,6 +10,8 @@ const DEFAULT_STATE = {
   totalValueMoved: "0", // stored as string because wei values are large
   actionsSinceCast: 0,
   totalMolts: 0,
+  lastMentionTimestamp: null, // ISO string of last processed mention
+  repliedHashes: [],          // cast hashes we already replied to
 };
 
 /**

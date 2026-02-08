@@ -2,6 +2,8 @@ const axios = require("axios");
 const { NEYNAR_API_KEY, FARCASTER_SIGNER_UUID } = require("./config");
 
 const NEYNAR_CAST_URL = "https://api.neynar.com/v2/farcaster/cast";
+const NEYNAR_NOTIFICATIONS_URL = "https://api.neynar.com/v2/farcaster/notifications";
+const HERMITBASE_FID = 2730232;
 
 // ── Helpers ────────────────────────────────────────────────────────
 
@@ -152,9 +154,43 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Fetch recent mentions and replies to @hermitbase via Neynar notifications API.
+ * Returns array of { hash, text, authorUsername, authorFid, timestamp }.
+ */
+async function fetchMentions(cursor = null) {
+  try {
+    const params = new URLSearchParams({
+      fid: String(HERMITBASE_FID),
+      type: "mentions,replies",
+    });
+    if (cursor) params.append("cursor", cursor);
+
+    const res = await axios.get(`${NEYNAR_NOTIFICATIONS_URL}?${params}`, {
+      headers: { "x-api-key": NEYNAR_API_KEY },
+      timeout: 15000,
+    });
+
+    const notifications = res.data?.notifications || [];
+    return notifications
+      .filter((n) => n.cast && n.cast.text)
+      .map((n) => ({
+        hash: n.cast.hash,
+        text: n.cast.text,
+        authorUsername: n.cast.author?.username || "unknown",
+        authorFid: n.cast.author?.fid || 0,
+        timestamp: n.cast.timestamp || n.most_recent_timestamp,
+      }));
+  } catch (err) {
+    console.error("[farcaster] Failed to fetch mentions:", err.message);
+    return [];
+  }
+}
+
 module.exports = {
   postCast,
   postMoltAnnouncement,
   postLifeUpdate,
   postPhilosophical,
+  fetchMentions,
 };

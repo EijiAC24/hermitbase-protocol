@@ -112,4 +112,21 @@ Reply with ONLY "yes" or "no".`;
   return response.toLowerCase().includes("yes");
 }
 
-module.exports = { ask, decideAction, generateCast, generateMoltCast, shouldMoltLLM };
+async function generateReply(mentionText, authorUsername, state) {
+  const prompt = `Someone on Farcaster mentioned me or replied to me.
+
+Their message: "${mentionText}"
+Their username: @${authorUsername}
+
+My current state:
+- Living in shell #${state.currentShellIndex}
+- Transaction count: ${state.txCount}
+- Time in this shell: ${Math.round((Date.now() - state.shellBornAt) / 60000)} minutes
+- Total molts: ${state.totalMolts || 0}
+
+Write a short reply (under 280 chars) as HermitBase the hermit crab. Be warm, genuine, and on-character. If they asked a question, answer it. If they said something nice, thank them. Stay in character as an onchain hermit crab.`;
+
+  return await ask(prompt, 150);
+}
+
+module.exports = { ask, decideAction, generateCast, generateMoltCast, shouldMoltLLM, generateReply };

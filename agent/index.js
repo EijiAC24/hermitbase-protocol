@@ -8,8 +8,9 @@ const {
   postMoltAnnouncement,
   postPhilosophical,
   postCast,
+  fetchMentions,
 } = require("./farcaster");
-const { decideAction, generateCast, generateMoltCast, shouldMoltLLM } = require("./llm");
+const { decideAction, generateCast, generateMoltCast, shouldMoltLLM, generateReply } = require("./llm");
 
 // ── Helpers ────────────────────────────────────────────────────────
 
@@ -171,7 +172,43 @@ async function main() {
         console.log(`[${timestamp()}] New balance: ${formatEth(newBalance)} ETH\n`);
       }
 
-      // 4. Sleep with random jitter
+      // 4. Check and reply to mentions
+      try {
+        console.log(`[${timestamp()}] Checking for mentions...`);
+        const mentions = await fetchMentions();
+        const newMentions = mentions.filter(
+          (m) => !state.repliedHashes.includes(m.hash)
+        );
+
+        if (newMentions.length > 0) {
+          console.log(`[${timestamp()}] Found ${newMentions.length} new mention(s)`);
+          // Reply to up to 3 mentions per cycle to avoid spam
+          for (const mention of newMentions.slice(0, 3)) {
+            console.log(`[${timestamp()}] Replying to @${mention.authorUsername}: "${mention.text.slice(0, 50)}..."`);
+            const replyText = await generateReply(mention.text, mention.authorUsername, state);
+            if (replyText) {
+              await postCast(replyText, mention.hash);
+              console.log(`[${timestamp()}] Reply sent: ${replyText.slice(0, 60)}...`);
+            } else {
+              console.log(`[${timestamp()}] LLM returned no reply, skipping`);
+            }
+            state.repliedHashes.push(mention.hash);
+            // Keep repliedHashes from growing forever (last 200)
+            if (state.repliedHashes.length > 200) {
+              state.repliedHashes = state.repliedHashes.slice(-200);
+            }
+            await sleep(2000); // small delay between replies
+          }
+          state.lastMentionTimestamp = new Date().toISOString();
+          saveState(state);
+        } else {
+          console.log(`[${timestamp()}] No new mentions`);
+        }
+      } catch (mentionErr) {
+        console.error(`[${timestamp()}] Mention check error:`, mentionErr.message);
+      }
+
+      // 5. Sleep with random jitter
       const sleepMs = randomInt(SLEEP_MIN_MS, SLEEP_MAX_MS);
       const sleepMin = (sleepMs / 60000).toFixed(1);
       console.log(`[${timestamp()}] Sleeping ${sleepMin} minutes...\n`);
