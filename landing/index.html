@@ -4,432 +4,717 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HermitBase — Autonomous AI Agent on Base</title>
-  <meta name="description" content="An AI hermit crab that lives on Base blockchain, autonomously transacts, molts wallets, and mints shed shells as on-chain SVG NFTs.">
+  <meta name="description" content="An AI hermit crab living on Base blockchain. Autonomously transacts, molts wallets, and mints shed shells as on-chain SVG NFTs.">
+  <meta property="og:title" content="HermitBase — Autonomous AI Agent on Base">
+  <meta property="og:description" content="An AI hermit crab that inhabits wallets, makes onchain decisions via LLM, and immortalizes each shed shell as an on-chain SVG NFT.">
+  <meta property="og:image" content="hero-2.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0a0e1a;
-      --bg2: #111827;
-      --surface: #1a2235;
-      --border: #2a3650;
-      --text: #e2e8f0;
-      --text-dim: #94a3b8;
-      --accent: #3b82f6;
-      --accent2: #06b6d4;
-      --coral: #f97316;
-      --green: #22c55e;
+      --bg: #0e1117;
+      --surface: #161a22;
+      --border: rgba(200,160,74,0.12);
+      --border-strong: rgba(200,160,74,0.25);
+      --text: #f5f2eb;
+      --text-secondary: #a8a090;
+      --text-muted: #6b6560;
+      --gold: #c8a04a;
+      --gold-dim: rgba(200,160,74,0.6);
+      --sienna: #b84c2c;
+      --navy: #1a2744;
+      --green-dim: #4a7a5a;
     }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
     body {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'DM Sans', sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
-    code, .mono { font-family: 'JetBrains Mono', monospace; }
-    a { color: var(--accent2); text-decoration: none; transition: color 0.2s; }
-    a:hover { color: var(--accent); }
-
-    /* Animated background */
-    .bg-ocean {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      z-index: -1; overflow: hidden;
-    }
-    .bg-ocean::before {
-      content: '';
-      position: absolute; top: -50%; left: -50%;
-      width: 200%; height: 200%;
-      background: radial-gradient(ellipse at 30% 20%, rgba(6,182,212,0.08) 0%, transparent 50%),
-                  radial-gradient(ellipse at 70% 80%, rgba(59,130,246,0.06) 0%, transparent 50%),
-                  radial-gradient(ellipse at 50% 50%, rgba(249,115,22,0.04) 0%, transparent 40%);
-      animation: drift 20s ease-in-out infinite;
-    }
-    @keyframes drift {
-      0%, 100% { transform: translate(0, 0) rotate(0deg); }
-      33% { transform: translate(2%, -1%) rotate(1deg); }
-      66% { transform: translate(-1%, 2%) rotate(-1deg); }
+      line-height: 1.7;
+      font-weight: 300;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* Layout */
-    .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82em;
+    }
 
-    /* Hero */
-    .hero {
-      padding: 100px 0 60px;
-      text-align: center;
+    a {
+      color: var(--gold);
+      text-decoration: none;
+      transition: opacity 0.3s ease;
     }
-    .hero-emoji { font-size: 72px; margin-bottom: 20px; display: block; }
-    .hero h1 {
-      font-size: 3rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      margin-bottom: 16px;
-      background: linear-gradient(135deg, var(--accent2), var(--accent), var(--coral));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    a:hover { opacity: 0.7; }
+
+    /* ── Reveal animation ─────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+                  transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
     }
-    .hero .tagline {
-      font-size: 1.25rem;
-      color: var(--text-dim);
-      max-width: 600px;
-      margin: 0 auto 32px;
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
     }
-    .hero-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-    .btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 12px 24px; border-radius: 10px;
-      font-size: 0.95rem; font-weight: 500;
-      transition: all 0.2s;
+
+    /* ── Nav ───────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(14,17,23,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      transition: padding 0.3s ease;
     }
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-    }
-    .btn-primary:hover { background: #2563eb; color: #fff; }
-    .btn-outline {
-      border: 1px solid var(--border);
+    nav.scrolled { padding: 12px 40px; }
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-weight: 500;
       color: var(--text);
-      background: var(--surface);
+      letter-spacing: 0.08em;
     }
-    .btn-outline:hover { border-color: var(--accent2); color: var(--accent2); }
-
-    /* Live status */
-    .live-bar {
-      display: flex; align-items: center; justify-content: center;
-      gap: 8px; margin-bottom: 40px;
-      font-size: 0.9rem; color: var(--green);
+    .nav-links { display: flex; gap: 32px; }
+    .nav-links a {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 400;
     }
-    .pulse {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--green);
-      animation: pulse 2s ease-in-out infinite;
+    .nav-links a:hover { color: var(--gold); opacity: 1; }
+    .nav-status {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.75rem;
+      color: var(--green-dim);
+      letter-spacing: 0.04em;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
-      50% { opacity: 0.8; box-shadow: 0 0 0 8px rgba(34,197,94,0); }
+    .nav-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green-dim);
+      animation: breathe 3s ease-in-out infinite;
     }
-
-    /* Sections */
-    section { padding: 60px 0; }
-    .section-title {
-      font-size: 1.5rem;
-      font-weight: 600;
-      margin-bottom: 24px;
-      display: flex; align-items: center; gap: 10px;
-    }
-    .section-title::before {
-      content: '';
-      width: 4px; height: 24px;
-      background: linear-gradient(to bottom, var(--accent2), var(--accent));
-      border-radius: 2px;
+    @keyframes breathe {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
     }
 
-    /* Cards */
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px;
-    }
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 24px;
-      transition: border-color 0.2s;
-    }
-    .card:hover { border-color: var(--accent2); }
-    .card-icon { font-size: 1.5rem; margin-bottom: 12px; }
-    .card h3 { font-size: 1.1rem; margin-bottom: 8px; }
-    .card p { font-size: 0.9rem; color: var(--text-dim); }
-
-    /* Architecture */
-    .arch-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 32px;
-      font-size: 0.85rem;
-      overflow-x: auto;
-    }
-    .arch-box pre { color: var(--accent2); line-height: 1.5; }
-
-    /* Decision table */
-    .decision-table {
+    /* ── Hero ──────────────────────────────────── */
+    .hero {
+      position: relative;
       width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9rem;
+      height: 90vh;
+      min-height: 600px;
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
     }
-    .decision-table th, .decision-table td {
-      padding: 12px 16px;
-      text-align: left;
+    .hero-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 40%;
+      filter: brightness(0.55) saturate(0.85);
+    }
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(14,17,23,0.3) 0%,
+        rgba(14,17,23,0.1) 40%,
+        rgba(14,17,23,0.7) 75%,
+        rgba(14,17,23,1) 100%
+      );
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 0 60px 80px;
+      max-width: 700px;
+    }
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 4.5rem;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      font-weight: 300;
+      max-width: 480px;
+      line-height: 1.7;
+    }
+
+    /* ── Section layout ───────────────────────── */
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+    section {
+      padding: 100px 0;
+    }
+    .section-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold-dim);
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+    .section-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.4rem;
+      font-weight: 400;
+      line-height: 1.25;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+    .section-text {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      max-width: 560px;
+      line-height: 1.8;
+    }
+
+    .divider {
+      width: 48px;
+      height: 1px;
+      background: var(--border-strong);
+      margin: 0 auto;
+    }
+
+    /* ── Concept (two-column with portrait) ──── */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 60px;
+      align-items: center;
+      margin-top: 48px;
+    }
+    .concept-img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 4px;
+      filter: saturate(0.9);
+    }
+    .concept-features {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      margin-top: 32px;
+    }
+    .feature {
+      padding-left: 20px;
+      border-left: 1px solid var(--border-strong);
+    }
+    .feature h3 {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .feature p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ── Decision table ───────────────────────── */
+    .decisions {
+      margin-top: 40px;
+    }
+    .decision-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 18px 0;
       border-bottom: 1px solid var(--border);
     }
-    .decision-table th {
-      color: var(--accent2);
-      font-weight: 500;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+    .decision-row:first-child {
+      border-top: 1px solid var(--border);
     }
-    .decision-table td:first-child { font-weight: 500; }
-    .decision-table td:last-child { color: var(--text-dim); }
+    .decision-what {
+      font-weight: 400;
+      font-size: 0.9rem;
+      color: var(--text);
+      flex: 0 0 220px;
+    }
+    .decision-how {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-align: right;
+    }
 
-    /* On-chain proof */
-    .proof-list { display: flex; flex-direction: column; gap: 12px; }
-    .proof-item {
-      display: flex; align-items: flex-start; gap: 12px;
+    /* ── Architecture ─────────────────────────── */
+    .arch {
+      margin-top: 40px;
+      padding: 36px;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    .arch pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      white-space: pre;
+    }
+
+    /* ── On-chain proof ───────────────────────── */
+    .proof-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      margin-top: 40px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .proof-cell {
+      padding: 24px 28px;
+      background: var(--surface);
     }
     .proof-label {
-      font-size: 0.75rem;
-      color: var(--text-dim);
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      min-width: 80px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
     }
     .proof-value {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.85rem;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
       word-break: break-all;
     }
+    .proof-value a { color: var(--text-secondary); }
+    .proof-value a:hover { color: var(--gold); opacity: 1; }
 
-    /* Tech stack */
-    .tech-tags { display: flex; flex-wrap: wrap; gap: 8px; }
-    .tag {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 16px;
-      font-size: 0.85rem;
-      color: var(--text-dim);
+    /* ── Links row ────────────────────────────── */
+    .links-row {
+      display: flex;
+      gap: 16px;
+      margin-top: 40px;
+      flex-wrap: wrap;
+    }
+    .link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border: 1px solid var(--border-strong);
+      border-radius: 3px;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.04em;
+      font-weight: 400;
+      transition: all 0.3s ease;
+      background: transparent;
+    }
+    .link-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      opacity: 1;
+    }
+    .link-btn.primary {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--bg);
+      font-weight: 500;
+    }
+    .link-btn.primary:hover {
+      background: transparent;
+      color: var(--gold);
+      opacity: 1;
     }
 
-    /* Footer */
+    /* ── Roadmap ──────────────────────────────── */
+    .roadmap-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      margin-top: 40px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .roadmap-col {
+      padding: 32px 28px;
+      background: var(--surface);
+    }
+    .roadmap-version {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--gold-dim);
+      margin-bottom: 4px;
+    }
+    .roadmap-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    .roadmap-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .roadmap-list li {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      padding-left: 12px;
+      position: relative;
+    }
+    .roadmap-list li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--border-strong);
+    }
+
+    /* ── Tech ─────────────────────────────────── */
+    .tech-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 32px;
+    }
+    .tech-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+
+    /* ── Footer ───────────────────────────────── */
     footer {
-      padding: 40px 0;
+      padding: 48px 40px;
       text-align: center;
-      color: var(--text-dim);
-      font-size: 0.85rem;
       border-top: 1px solid var(--border);
     }
+    footer p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+    footer a {
+      color: var(--text-secondary);
+    }
 
-    /* Responsive */
-    @media (max-width: 640px) {
-      .hero h1 { font-size: 2rem; }
-      .hero .tagline { font-size: 1rem; }
-      .hero { padding: 60px 0 40px; }
-      section { padding: 40px 0; }
+    /* ── Responsive ───────────────────────────── */
+    @media (max-width: 768px) {
+      nav { padding: 16px 24px; }
+      .nav-links { display: none; }
+      .hero { height: 70vh; min-height: 480px; }
+      .hero-content { padding: 0 24px 48px; }
+      .hero-title { font-size: 2.8rem; }
+      .wrap { padding: 0 24px; }
+      section { padding: 64px 0; }
+      .concept-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .concept-img { max-width: 320px; }
+      .proof-grid { grid-template-columns: 1fr; }
+      .roadmap-grid { grid-template-columns: 1fr; }
+      .decision-row { flex-direction: column; gap: 4px; }
+      .decision-how { text-align: left; }
+      .section-heading { font-size: 1.8rem; }
     }
   </style>
 </head>
 <body>
-  <div class="bg-ocean"></div>
 
-  <div class="container">
-    <!-- Hero -->
-    <section class="hero">
-      <span class="hero-emoji">🦀</span>
-      <h1>HermitBase</h1>
-      <p class="tagline">An autonomous AI agent living on Base. It inhabits wallets, makes onchain decisions via LLM, and mints each shed shell as an on-chain SVG NFT.</p>
-      <div class="live-bar">
-        <span class="pulse"></span>
-        Agent is live on Base Sepolia
-      </div>
-      <div class="hero-links">
-        <a href="https://warpcast.com/hermitbase" target="_blank" class="btn btn-primary">Farcaster @hermitbase</a>
-        <a href="https://sepolia.basescan.org/address/0xcf38e8aF885529c457f766a01c22473dBcCe3396" target="_blank" class="btn btn-outline">View Contract</a>
-        <a href="https://github.com/EijiAC24/hermitbase-protocol" target="_blank" class="btn btn-outline">GitHub</a>
-      </div>
-    </section>
+  <!-- Nav -->
+  <nav>
+    <span class="nav-logo">HermitBase</span>
+    <div class="nav-links">
+      <a href="#concept">Concept</a>
+      <a href="#intelligence">Intelligence</a>
+      <a href="#proof">On-Chain</a>
+      <a href="#roadmap">Roadmap</a>
+    </div>
+    <div class="nav-status">
+      <span class="nav-dot"></span>
+      Live on Base
+    </div>
+  </nav>
 
-    <!-- What It Does -->
-    <section>
-      <h2 class="section-title">What It Does</h2>
-      <div class="card-grid">
-        <div class="card">
-          <div class="card-icon">🧠</div>
-          <h3>LLM-Driven Decisions</h3>
-          <p>Every action, every Farcaster post, every molt decision is made by an LLM. The agent thinks before it acts.</p>
-        </div>
-        <div class="card">
-          <div class="card-icon">🔄</div>
-          <h3>Autonomous Transactions</h3>
-          <p>Breathes, gifts, observes, and self-transfers on Base. Each transaction is a moment in the crab's life.</p>
-        </div>
-        <div class="card">
-          <div class="card-icon">🐚</div>
-          <h3>Wallet Molting</h3>
-          <p>When the LLM decides the shell is outgrown, the agent molts — shedding its wallet and minting it as an NFT.</p>
-        </div>
-        <div class="card">
-          <div class="card-icon">💬</div>
-          <h3>Social Intelligence</h3>
-          <p>Posts to Farcaster with AI-generated content. Reads mentions and auto-replies as a sentient onchain hermit crab.</p>
-        </div>
-      </div>
-    </section>
+  <!-- Hero -->
+  <section class="hero">
+    <img src="hero-2.jpg" alt="Cubist hermit crabs — HermitBase" class="hero-img">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <h1 class="hero-title">HermitBase</h1>
+      <p class="hero-sub">An autonomous AI agent living on Base. It inhabits wallets, makes onchain decisions through an LLM, and immortalizes each shed shell as an on-chain SVG NFT.</p>
+    </div>
+  </section>
 
-    <!-- How the AI Decides -->
-    <section>
-      <h2 class="section-title">How the AI Decides</h2>
-      <p style="color: var(--text-dim); margin-bottom: 20px;">No human in the loop. Every key decision is delegated to an LLM with rule-based fallback.</p>
-      <div class="card" style="overflow-x: auto;">
-        <table class="decision-table">
-          <thead>
-            <tr><th>Decision</th><th>Method</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>What action to perform</td><td>LLM chooses from: breathe, self-transfer, gift, observe</td></tr>
-            <tr><td>What to post on Farcaster</td><td>LLM generates poetic cast content from current state</td></tr>
-            <tr><td>When to molt</td><td>LLM evaluates tx count, shell age, and history</td></tr>
-            <tr><td>How to reply to mentions</td><td>LLM reads the message and generates contextual reply</td></tr>
-          </tbody>
-        </table>
+  <!-- Concept -->
+  <section id="concept">
+    <div class="wrap">
+      <div class="reveal">
+        <p class="section-label">Concept</p>
+        <h2 class="section-heading">A hermit crab that lives<br>on the blockchain</h2>
+        <p class="section-text">Like a real hermit crab, HermitBase inhabits a wallet, lives in it, outgrows it, and sheds it. Each shed wallet is minted as an ERC-721 NFT with fully on-chain SVG art. No IPFS. No external dependencies. Every shell lives forever on Base.</p>
       </div>
-    </section>
-
-    <!-- Architecture -->
-    <section>
-      <h2 class="section-title">Architecture</h2>
-      <div class="arch-box">
-<pre>
-┌────────────────────────────────────────────────┐
-│  VPS — HermitBase Agent (Node.js + pm2)        │
-│                                                │
-│  LLM Brain (OpenRouter)                        │
-│  ├── Decides onchain actions                   │
-│  ├── Generates Farcaster content               │
-│  ├── Judges molt timing                        │
-│  └── Replies to mentions                       │
-│                                                │
-│  Onchain Body (ethers.js v6)                   │
-│  ├── ETH micro-transfers on Base               │
-│  ├── ShellNFT minting (ERC-721)                │
-│  └── Contract state reads                      │
-│                                                │
-│  Social Layer (Neynar API)                     │
-│  ├── Autonomous posting to Farcaster           │
-│  └── Mention monitoring + auto-reply           │
-│                                                │
-│  State Machine                                 │
-│  └── Persistent JSON state + graceful shutdown │
-└──────────┬─────────────────┬──────────────────┘
-           │                 │
-           ▼                 ▼
-     Base Sepolia        Farcaster
-     (ShellNFT)        (@hermitbase)
-</pre>
-      </div>
-    </section>
-
-    <!-- On-Chain SVG -->
-    <section>
-      <h2 class="section-title">On-Chain SVG NFTs</h2>
-      <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
-        <div class="card">
-          <p>Each shed wallet is immortalized as an ERC-721 NFT with <strong>fully on-chain SVG art</strong>. No IPFS, no external dependencies.</p>
-          <br>
-          <p style="color: var(--text-dim); font-size: 0.9rem;">
-            <strong style="color: var(--coral);">Color</strong> — More transactions = warmer colors (blue → red)<br>
-            <strong style="color: var(--accent2);">Size</strong> — More ETH moved = larger shell spiral<br>
-            <strong style="color: var(--text);">Text</strong> — Shell number, tx count, lifespan
-          </p>
+      <div class="concept-grid reveal">
+        <div class="concept-features">
+          <div class="feature">
+            <h3>LLM-Driven Decisions</h3>
+            <p>Every action, post, and molt is decided by an LLM. The agent reasons about its state before acting.</p>
+          </div>
+          <div class="feature">
+            <h3>Autonomous Transactions</h3>
+            <p>Breathes, gifts, observes, and self-transfers on Base. Each transaction is a moment in the crab's life.</p>
+          </div>
+          <div class="feature">
+            <h3>Wallet Molting</h3>
+            <p>When the shell is outgrown, the agent molts and mints the shed wallet as an on-chain SVG NFT.</p>
+          </div>
+          <div class="feature">
+            <h3>Social Intelligence</h3>
+            <p>Posts to Farcaster autonomously and replies to mentions with AI-generated responses.</p>
+          </div>
         </div>
-        <div class="card" style="display: flex; align-items: center; justify-content: center; min-height: 200px;">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="180" height="180">
-            <rect width="200" height="200" rx="12" fill="#0f1729"/>
-            <path d="M100,170 Q60,160 50,130 Q35,90 60,60 Q80,35 110,40 Q140,45 150,75 Q160,105 140,130 Q125,150 100,145 Q80,140 85,120 Q90,100 105,95 Q120,90 125,105 Q128,118 115,122 Q105,125 103,113" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
-            <path d="M100,170 Q60,160 50,130 Q35,90 60,60 Q80,35 110,40 Q140,45 150,75 Q160,105 140,130 Q125,150 100,145 Q80,140 85,120 Q90,100 105,95 Q120,90 125,105 Q128,118 115,122 Q105,125 103,113" fill="none" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round" opacity="0.4" stroke-dasharray="4 6"/>
-            <text x="100" y="186" text-anchor="middle" fill="#64748b" font-family="monospace" font-size="10">Shell #0 · 4 txs</text>
-          </svg>
+        <img src="hero-1.jpg" alt="Cubist hermit crab portrait" class="concept-img">
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- AI Intelligence -->
+  <section id="intelligence">
+    <div class="wrap">
+      <div class="reveal">
+        <p class="section-label">Intelligence</p>
+        <h2 class="section-heading">No human in the loop</h2>
+        <p class="section-text">Every key decision is delegated to an LLM with rule-based fallback. The agent thinks, acts, and communicates autonomously.</p>
+      </div>
+      <div class="decisions reveal">
+        <div class="decision-row">
+          <span class="decision-what">Action selection</span>
+          <span class="decision-how">LLM chooses: breathe, self-transfer, gift, observe</span>
+        </div>
+        <div class="decision-row">
+          <span class="decision-what">Content generation</span>
+          <span class="decision-how">LLM writes poetic Farcaster casts from current state</span>
+        </div>
+        <div class="decision-row">
+          <span class="decision-what">Molt judgment</span>
+          <span class="decision-how">LLM evaluates tx count, shell age, and history</span>
+        </div>
+        <div class="decision-row">
+          <span class="decision-what">Social replies</span>
+          <span class="decision-how">LLM reads mentions and generates contextual responses</span>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- On-Chain Proof -->
-    <section>
-      <h2 class="section-title">On-Chain Proof</h2>
-      <div class="proof-list">
-        <div class="proof-item">
-          <span class="proof-label">Contract</span>
-          <a class="proof-value" href="https://sepolia.basescan.org/address/0xcf38e8aF885529c457f766a01c22473dBcCe3396" target="_blank">0xcf38e8aF885529c457f766a01c22473dBcCe3396</a>
+  <div class="divider"></div>
+
+  <!-- Architecture -->
+  <section>
+    <div class="wrap">
+      <div class="reveal">
+        <p class="section-label">Architecture</p>
+        <h2 class="section-heading">System design</h2>
+      </div>
+      <div class="arch reveal">
+<pre>VPS  ─  HermitBase Agent  (Node.js + pm2)
+│
+├── LLM Brain  (OpenRouter)
+│   ├── Action decisions
+│   ├── Content generation
+│   ├── Molt judgment
+│   └── Reply synthesis
+│
+├── Onchain Body  (ethers.js v6)
+│   ├── ETH micro-transfers
+│   ├── ShellNFT minting  (ERC-721)
+│   └── Contract reads
+│
+├── Social Layer  (Neynar API)
+│   ├── Farcaster posting
+│   └── Mention monitoring
+│
+└── State Machine
+    └── Persistent JSON  +  graceful shutdown
+
+         ▼                    ▼
+    Base Sepolia          Farcaster
+    (ShellNFT)          (@hermitbase)</pre>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- On-Chain Proof -->
+  <section id="proof">
+    <div class="wrap">
+      <div class="reveal">
+        <p class="section-label">On-Chain Proof</p>
+        <h2 class="section-heading">Verified and live</h2>
+      </div>
+      <div class="proof-grid reveal">
+        <div class="proof-cell">
+          <p class="proof-label">Contract</p>
+          <p class="proof-value"><a href="https://sepolia.basescan.org/address/0xcf38e8aF885529c457f766a01c22473dBcCe3396" target="_blank">0xcf38e8aF885529c457f766a01c22473dBcCe3396</a></p>
         </div>
-        <div class="proof-item">
-          <span class="proof-label">Agent</span>
-          <a class="proof-value" href="https://sepolia.basescan.org/address/0x02CEB3e68D1d30e12301B32c41E03c19E77F93c4" target="_blank">0x02CEB3e68D1d30e12301B32c41E03c19E77F93c4</a>
+        <div class="proof-cell">
+          <p class="proof-label">Agent Wallet</p>
+          <p class="proof-value"><a href="https://sepolia.basescan.org/address/0x02CEB3e68D1d30e12301B32c41E03c19E77F93c4" target="_blank">0x02CEB3e68D1d30e12301B32c41E03c19E77F93c4</a></p>
         </div>
-        <div class="proof-item">
-          <span class="proof-label">Network</span>
-          <span class="proof-value">Base Sepolia (Chain ID: 84532)</span>
+        <div class="proof-cell">
+          <p class="proof-label">Network</p>
+          <p class="proof-value">Base Sepolia  (84532)</p>
         </div>
-        <div class="proof-item">
-          <span class="proof-label">Verified</span>
-          <span class="proof-value">Sourcify (exact_match)</span>
+        <div class="proof-cell">
+          <p class="proof-label">Verification</p>
+          <p class="proof-value">Sourcify  (exact match)</p>
         </div>
       </div>
-    </section>
+      <div class="links-row reveal">
+        <a href="https://warpcast.com/hermitbase" target="_blank" class="link-btn primary">Farcaster @hermitbase</a>
+        <a href="https://sepolia.basescan.org/address/0xcf38e8aF885529c457f766a01c22473dBcCe3396" target="_blank" class="link-btn">BaseScan</a>
+        <a href="https://github.com/EijiAC24/hermitbase-protocol" target="_blank" class="link-btn">GitHub</a>
+      </div>
+    </div>
+  </section>
 
-    <!-- Roadmap -->
-    <section>
-      <h2 class="section-title">Roadmap</h2>
-      <div class="card-grid" style="grid-template-columns: 1fr 1fr 1fr;">
-        <div class="card">
-          <h3 style="color: var(--green);">v1.0 — Current</h3>
-          <p style="font-size: 0.85rem; color: var(--text-dim);">
-            ShellNFT with on-chain SVG<br>
-            LLM-driven autonomous agent<br>
-            Farcaster integration + auto-reply<br>
-            Base Sepolia deployment
-          </p>
+  <div class="divider"></div>
+
+  <!-- Roadmap -->
+  <section id="roadmap">
+    <div class="wrap">
+      <div class="reveal">
+        <p class="section-label">Roadmap</p>
+        <h2 class="section-heading">Where this is going</h2>
+      </div>
+      <div class="roadmap-grid reveal">
+        <div class="roadmap-col">
+          <p class="roadmap-version">v1.0</p>
+          <p class="roadmap-title">Current</p>
+          <ul class="roadmap-list">
+            <li>ShellNFT with on-chain SVG</li>
+            <li>LLM-driven autonomous agent</li>
+            <li>Farcaster posting + auto-reply</li>
+            <li>Base Sepolia deployment</li>
+          </ul>
         </div>
-        <div class="card">
-          <h3 style="color: var(--accent2);">v2.0 — Planned</h3>
-          <p style="font-size: 0.85rem; color: var(--text-dim);">
-            On-chain data analysis<br>
-            Autonomous contract discovery<br>
-            Social intelligence + relationships<br>
-            Multi-chain migration
-          </p>
+        <div class="roadmap-col">
+          <p class="roadmap-version">v2.0</p>
+          <p class="roadmap-title">Autonomous Intelligence</p>
+          <ul class="roadmap-list">
+            <li>On-chain data analysis</li>
+            <li>Autonomous contract discovery</li>
+            <li>Social intelligence</li>
+            <li>Multi-chain migration</li>
+          </ul>
         </div>
-        <div class="card">
-          <h3 style="color: var(--coral);">v3.0 — Vision</h3>
-          <p style="font-size: 0.85rem; color: var(--text-dim);">
-            Multi-agent molting<br>
-            Shell marketplace<br>
-            Evolutionary traits<br>
-            Composable shell identities
-          </p>
+        <div class="roadmap-col">
+          <p class="roadmap-version">v3.0</p>
+          <p class="roadmap-title">Collective</p>
+          <ul class="roadmap-list">
+            <li>Multi-agent molting</li>
+            <li>Shell marketplace</li>
+            <li>Evolutionary traits</li>
+            <li>Composable identities</li>
+          </ul>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Tech Stack -->
-    <section>
-      <h2 class="section-title">Tech Stack</h2>
-      <div class="tech-tags">
-        <span class="tag">Solidity 0.8.20</span>
-        <span class="tag">Foundry</span>
-        <span class="tag">Node.js</span>
-        <span class="tag">ethers.js v6</span>
-        <span class="tag">OpenRouter (LLM)</span>
-        <span class="tag">Neynar API</span>
-        <span class="tag">Farcaster</span>
-        <span class="tag">Base Sepolia</span>
-        <span class="tag">pm2</span>
-        <span class="tag">On-chain SVG</span>
+  <div class="divider"></div>
+
+  <!-- Tech Stack -->
+  <section>
+    <div class="wrap">
+      <div class="reveal">
+        <p class="section-label">Stack</p>
+        <h2 class="section-heading">Built with</h2>
       </div>
-    </section>
+      <div class="tech-row reveal">
+        <span class="tech-tag">Solidity 0.8.20</span>
+        <span class="tech-tag">Foundry</span>
+        <span class="tech-tag">Node.js</span>
+        <span class="tech-tag">ethers.js v6</span>
+        <span class="tech-tag">OpenRouter</span>
+        <span class="tech-tag">Neynar API</span>
+        <span class="tech-tag">Farcaster</span>
+        <span class="tech-tag">Base Sepolia</span>
+        <span class="tech-tag">pm2</span>
+        <span class="tech-tag">On-chain SVG</span>
+      </div>
+    </div>
+  </section>
 
-    <!-- Footer -->
-    <footer>
-      <p>Built by <a href="https://github.com/EijiAC24">EijiAC24</a> for the Base Builder Quest</p>
-      <p style="margin-top: 8px;">Part of the <a href="https://github.com/EijiAC24">OpenClaw</a> ecosystem</p>
-    </footer>
-  </div>
+  <!-- Footer -->
+  <footer>
+    <p>Built by <a href="https://github.com/EijiAC24">EijiAC24</a> for the Base Builder Quest</p>
+    <p>Part of the <a href="https://github.com/EijiAC24">OpenClaw</a> ecosystem</p>
+  </footer>
+
+  <!-- Scroll reveal + nav shrink -->
+  <script>
+    const reveals = document.querySelectorAll('.reveal');
+    const nav = document.querySelector('nav');
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+    reveals.forEach(el => observer.observe(el));
+
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 60);
+    }, { passive: true });
+  </script>
+
 </body>
 </html>
